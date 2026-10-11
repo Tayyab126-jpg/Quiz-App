@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
+  <title>Quiz Engine - Local Progress</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="theme-dark-emerald" style="height: 100dvh; justify-content: flex-start;">
+  <header style="padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 36px; height: 36px; display: grid; place-items: center; color: #f59e0b;"><i class="fa-solid fa-trophy"></i></div>
+      <div>
+        <h1 style="font-size: 13px; font-weight: 800;">My Game Progress</h1>
+        <p style="font-size: 10px; color: var(--text-muted);">Saved privately on this device</p>
+      </div>
+    </div>
+    <a href="home.html" class="unity-btn" aria-label="Home" style="width: 36px; height: 36px; display: grid; place-items: center; color: var(--text-main); text-decoration: none;"><i class="fa-solid fa-house"></i></a>
+  </header>
+  <main style="width: 100%; max-width: 420px; margin: auto; padding: 20px;">
+    <section id="progressCard" class="unity-panel" style="padding: 24px; text-align: center;"></section>
+    <p style="margin: 16px 4px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">Online leaderboards are off because profiles and scores are never uploaded. Your scores stay on this device.</p>
+  </main>
+  <footer style="padding: 12px 24px; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border-color);">
+    <a href="home.html" style="color: var(--text-muted); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-house"></i> Home</a>
+    <a href="chats.html" style="color: var(--text-muted); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-comments"></i> Chat</a>
+    <a href="mini-game.html" style="color: var(--accent-color); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-shapes"></i> Games</a>
+  </footer>
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script>
+    const profile = LocalProfile.getCurrent();
+    if (!profile) window.location.href = "login.html";
+    else {
+      document.body.className = localStorage.getItem("appTheme") || "theme-dark-emerald";
+      document.getElementById("progressCard").innerHTML =
+        `<h2 style="font-size: 16px; margin-bottom: 8px;"></h2><p style="font-size: 12px; color: var(--text-muted);"></p><p style="margin-top: 12px; font-size: 12px; color: var(--accent-color);"></p>`;
+      const [name, level, score] = document.querySelectorAll("#progressCard h2, #progressCard p");
+      name.textContent = profile.name;
+      level.textContent = `Current level: ${profile.completedLevel}`;
+      score.textContent = `Quiz score: ${profile.totalScore} · Memory best: ${profile.bestMemoryScore}`;
+    }
+  </script>
+</body>
+</html>

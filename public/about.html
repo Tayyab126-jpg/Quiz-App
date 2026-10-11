@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Game - About Us</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="theme-dark-emerald">
+  <header style="padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;">
+    <h1 style="font-size: 16px; font-weight: 900;">About Quiz Game</h1>
+    <a href="home.html" class="unity-btn" aria-label="Home" style="width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: var(--text-main); text-decoration: none;"><i class="fa-solid fa-house"></i></a>
+  </header>
+  <main class="info-page">
+    <div class="unity-panel" style="padding: 24px;">
+      <div style="color: var(--accent-color); font-size: 22px;"><i class="fa-solid fa-gamepad"></i></div>
+      <h2 style="margin-top: 12px;">Learn, play, and level up</h2>
+      <p>Quiz Game is a local-first trivia arena with progressive levels, offline-friendly mini-games, and Arena Buddy—an AI teammate that can help you learn and make the most of your game progress.</p>
+      <h2>Built for players</h2>
+      <p>Choose from offline-friendly quiz topics, try the animal Memory Match game, and ask Arena Buddy for help when you have an internet connection. Your profile and game progress stay on this device; they do not sync to other devices.</p>
+      <h2>Made for offline play</h2>
+      <p style="margin-top: 22px;"><a href="privacy.html" style="color: var(--accent-color);">Read the Privacy Policy</a></p>
+    </div>
+  </main>
+  <script>
+    document.body.className = localStorage.getItem("appTheme") || "theme-dark-emerald";
+  </script>
+</body>
+</html>

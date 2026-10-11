@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Game - Privacy Policy</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="theme-dark-emerald">
+  <header style="padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;">
+    <h1 style="font-size: 16px; font-weight: 900;">Privacy Policy</h1>
+    <a href="home.html" class="unity-btn" aria-label="Home" style="width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: var(--text-main); text-decoration: none;"><i class="fa-solid fa-house"></i></a>
+  </header>
+  <main class="info-page">
+    <div class="unity-panel" style="padding: 24px;">
+      <p><strong>Last updated: October 8, 2026</strong></p>
+      <p>This notice describes how this local-only Quiz Game app currently handles information. It is a practical description of this app, not legal advice or a substitute for a policy tailored to your location.</p>
+      <h2>Information stored by the game</h2>
+      <ul>
+        <li>Your local profile name, email, salted password hash, game progress, scores, and Arena Buddy chat history are stored in this browser on this device.</li>
+        <li>The app does not upload local profiles, passwords, quiz scores, or progress to a game database. Clearing this browser's site data removes locally saved information.</li>
+        <li>Player-to-player chat, voice calls, and the global leaderboard are disabled in local-only mode.</li>
+      </ul>
+      <h2>Arena Buddy and external services</h2>
+      <p>Arena Buddy needs internet access. When you send a question, the message and recent conversation context, plus your local profile name and current level, are sent through the app server to OpenRouter and its selected model provider. Your email and password are not included. Those providers process requests under their own terms and privacy practices.</p>
+      <p>When internet is available, quiz questions can be fetched from Open Trivia Database and translations can be requested from the configured AI service. Built-in quiz questions and Memory Match are available offline after the app has been opened at least once.</p>
+      <h2>Use, storage, and control</h2>
+      <p>Profiles and progress are stored on one device and are not synchronized between devices. Use “Forgot Password?” to delete a local profile and its progress before creating a new one. Existing data from older server-backed versions is not automatically migrated or deleted.</p>
+      <p>Do not share passwords or sensitive information with Arena Buddy. Local password hashes and chat history remain accessible to anyone with access to this browser profile.</p>
+      <p style="margin-top: 22px;"><a href="about.html" style="color: var(--accent-color);">About Quiz Game</a></p>
+    </div>
+  </main>
+  <script>
+    document.body.className = localStorage.getItem("appTheme") || "theme-dark-emerald";
+  </script>
+</body>
+</html>

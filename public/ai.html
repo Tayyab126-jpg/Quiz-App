@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
+  <title>Quiz Game - Ask Arena Buddy</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="theme-dark-emerald" style="height: 100dvh; overflow: hidden;">
+  <header style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: var(--accent-gradient); color: #fff;">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      </div>
+      <div>
+        <h1 style="font-size: 14px; font-weight: 900;">Ask Arena Buddy</h1>
+        <p id="aiProfile" style="font-size: 10px; color: var(--text-muted);">Your in-game AI teammate</p>
+      </div>
+    </div>
+    <a href="home.html" class="unity-btn" aria-label="Home" style="width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: var(--text-main); text-decoration: none;">
+      <i class="fa-solid fa-house"></i>
+    </a>
+  </header>
+
+  <main id="aiChatLog" class="ai-chat-log" aria-live="polite" aria-label="Conversation with Arena Buddy">
+    <div class="ai-message ai-message-assistant">Hey, player! I’m Arena Buddy, your Quiz Game teammate. Ask me about trivia, strategies, or your progress.</div>
+  </main>
+  <p id="aiStatus" role="status" style="min-height: 20px; padding: 0 16px; color: var(--danger-color); font-size: 11px;"></p>
+  <form id="aiChatForm" class="ai-chat-composer">
+    <textarea id="aiPrompt" maxlength="2000" rows="1" placeholder="Ask your game’s AI teammate..." aria-label="Your message" required></textarea>
+    <button id="aiSendButton" type="submit" class="unity-btn" aria-label="Send message"><i class="fa-solid fa-paper-plane"></i></button>
+  </form>
+
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script src="ai.js"></script>
+</body>
+</html>

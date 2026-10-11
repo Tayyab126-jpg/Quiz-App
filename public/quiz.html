@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
+  <title>Quiz Engine - Arena</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Urdu / Arabic Font Support -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+    .timer-animation { animation: shrink 10s linear infinite; }
+    /* Professional Urdu Font Class */
+    .urdu-font {
+      font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaliq', serif !important;
+      direction: rtl;
+      font-size: 15px !important;
+      line-height: 2.2 !important;
+    }
+  </style>
+</head>
+<body id="appBody" class="theme-dark-emerald" style="display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden;">
+
+  <!-- TOP TIMELINE BAR -->
+  <div style="width: 100%; background: rgba(0,0,0,0.3); height: 4px; overflow: hidden; z-index: 20;">
+    <div id="timelineBar" style="background: var(--accent-color); height: 100%; width: 100%;"></div>
+  </div>
+
+  <!-- NAVBAR -->
+  <header style="padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 38px; height: 38px; background: var(--accent-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff;">
+        <i class="fa-solid fa-brain text-sm"></i>
+      </div>
+      <div>
+        <h1 id="levelTitleDisplay" style="font-size: 13px; font-weight: 800;">Level 1</h1>
+        <p id="difficultyDisplay" style="font-size: 10px; color: var(--accent-color); font-weight: 700; text-transform: uppercase;">Difficulty: Easy</p>
+      </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <!-- Language / Translation Selector -->
+      <select id="langSelect" onchange="changeLanguage()" disabled style="padding: 6px 10px; font-size: 10px; font-weight: 700; width: auto; background: rgba(0,0,0,0.3);">
+        <option value="en">English</option>
+        <option value="ur">Urdu (اردو)</option>
+        <option value="es">Spanish</option>
+        <option value="ar">Arabic (العربية)</option>
+      </select>
+
+      <div class="unity-panel" style="padding: 6px 12px; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-stopwatch" style="color: #f59e0b;"></i>
+        <span id="timerDisplay" style="font-family: monospace; font-weight: 800; font-size: 12px; color: #f59e0b;">10s</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN AREA -->
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; max-width: 500px; margin: 0 auto; width: 100%;">
+    
+    <div id="loadingBox" style="text-align: center;">
+      <div style="width: 36px; height: 36px; border: 3px solid var(--accent-color); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px auto;"></div>
+      <p style="font-size: 12px; color: var(--text-muted);">Loading your game questions...</p>
+    </div>
+
+    <div id="quizContainer" style="width: 100%; display: none;" class="no-scrollbar">
+      <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+        <span id="questionProgress">Question 1 of 5</span>
+        <span id="scoreTracker" style="color: var(--accent-color);">Score: 0</span>
+      </div>
+      <div style="width: 100%; background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 20px;">
+        <div id="progressBar" style="background: var(--accent-gradient); height: 100%; width: 0%; transition: width 0.3s;"></div>
+      </div>
+
+      <div class="unity-panel" style="padding: 24px;">
+        <h3 id="questionText" style="font-size: 14px; font-weight: 800; line-height: 1.5; margin-bottom: 20px;">Loading question...</h3>
+        <div id="optionsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="resultContainer" class="unity-panel" style="width: 100%; max-width: 360px; padding: 30px; display: none; text-align: center;">
+      <div id="resultIconBox" style="width: 54px; height: 54px; border-radius: 16px; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+        <i id="resultIcon" class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 id="resultHeading" style="font-size: 18px; font-weight: 900; margin-bottom: 4px;">Level Completed!</h2>
+      <p id="resultSubText" style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">Great performance.</p>
+      
+      <div class="unity-panel" style="padding: 12px; margin-bottom: 20px; display: flex; justify-content: space-around; background: rgba(0,0,0,0.2);">
+        <div>
+            <p data-i18n="correct" style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Correct</p>
+          <p id="finalCorrect" style="font-size: 14px; font-weight: 900; color: var(--accent-color);">0/5</p>
+        </div>
+        <div style="border-right: 1px solid var(--border-color);"></div>
+        <div>
+            <p data-i18n="status" style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Status</p>
+          <p id="finalStatus" style="font-size: 14px; font-weight: 900;">PASSED</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="primaryActionBtn" onclick="restartQuiz()" class="unity-btn" style="padding: 12px; font-size: 12px;">Try Again</button>
+        <button onclick="window.location.href='level.html'" data-i18n="backToLevels" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; font-size: 12px; border-radius: 12px; cursor: pointer; font-weight: 700;">Back to Level Selector</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- CUSTOM ERROR MODAL -->
+  <div id="errorModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 100;">
+    <div class="unity-panel" style="width: 100%; max-width: 320px; padding: 24px; text-align: center; border-color: rgba(239,68,68,0.4);">
+      <div style="width: 44px; height: 44px; background: rgba(239,68,68,0.1); border-radius: 12px; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center; color: var(--danger-color); font-size: 18px;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 style="font-size: 15px; font-weight: 900; margin-bottom: 6px;">System Alert</h3>
+      <p id="errorModalMsg" style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">An unexpected error occurred.</p>
+      <button onclick="closeErrorModal()" class="unity-btn" style="width: 100%; padding: 10px; font-size: 11px; background: linear-gradient(135deg, #b91c1c, #ef4444);">Dismiss</button>
+    </div>
+  </div>
+
+  <footer style="padding: 12px 24px; text-align: center; border-top: 1px solid var(--border-color);">
+    <a href="level.html" style="font-size: 11px; color: var(--text-muted); text-decoration: none; font-weight: 600;">
+      <i class="fa-solid fa-arrow-left" style="margin-right: 4px;"></i> <span data-i18n="exitQuiz">Exit Quiz Arena</span>
+    </a>
+  </footer>
+
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script src="i18n.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedLevel = Number(urlParams.get("level") || "1");
+    const levelNum = Number.isInteger(requestedLevel) && requestedLevel >= 1 && requestedLevel <= 100 ? requestedLevel : 1;
+    const allowedCategories = new Set(["9", "17", "18", "22", "23"]);
+    const requestedCategory = urlParams.get("cat") || "18";
+    const catId = allowedCategories.has(requestedCategory) ? requestedCategory : "18";
+
+    let difficulty = "easy";
+    if (levelNum > 33 && levelNum <= 66) difficulty = "medium";
+    if (levelNum > 66) difficulty = "hard";
+
+    document.getElementById("levelTitleDisplay").innerText = `Level ${levelNum}`;
+    const timeLimit = levelNum <= 33 ? 15 : levelNum <= 66 ? 12 : 10;
+    document.getElementById("difficultyDisplay").innerText =
+      appTranslate("difficulty", { difficulty: appTranslate(difficulty) });
+
+    let questions = [];
+    let originalQuestions = [];
+    const translatedQuestionSets = new Map();
+    let currentIndex = 0;
+    let score = 0;
+    let timer = null;
+    let timeLeft = 10;
+    let isAnswered = false;
+    let isTranslating = false; // Flag to keep timer stopped during translation
+
+    window.onload = function() {
+      const profile = LocalProfile.getCurrent();
+      if (!profile) {
+        window.location.href = "login.html";
+        return;
+      }
+      if (levelNum > profile.completedLevel) {
+        window.location.href = "level.html";
+        return;
+      }
+      const savedTheme = localStorage.getItem("appTheme") || "theme-dark-emerald";
+      document.body.className = savedTheme;
+      document.getElementById("langSelect").value = localStorage.getItem("appLanguage") || "en";
+      fetchQuestions();
+    };
+
+    function showCustomError(msg) {
+      document.getElementById("errorModalMsg").innerText = msg;
+      document.getElementById("errorModal").style.display = "flex";
+      playOoSound();
+    }
+    function closeErrorModal() {
+      document.getElementById("errorModal").style.display = "none";
+    }
+
+    async function fetchQuestions() {
+      if (!navigator.onLine) {
+        loadFallback();
+        return;
+      }
+      try {
+        const res = await fetch(`https://opentdb.com/api.php?amount=5&category=${catId}&difficulty=${difficulty}&type=multiple`, {
+          signal: AbortSignal.timeout(8000)
+        });
+        if (!res.ok) throw new Error(`Question service returned ${res.status}.`);
+        const data = await res.json();
+        if (data.response_code === 0 && Array.isArray(data.results) && data.results.length === 5 &&
+            data.results.every(question => typeof question.question === "string" &&
+              typeof question.correct_answer === "string" &&
+              Array.isArray(question.incorrect_answers) && question.incorrect_answers.length === 3)) {
+          originalQuestions = data.results.map(question => ({
+            question: question.question,
+            correct_answer: question.correct_answer,
+            incorrect_answers: question.incorrect_answers
+          }));
+          questions = JSON.parse(JSON.stringify(originalQuestions));
+          document.getElementById("langSelect").disabled = false;
+          document.getElementById("loadingBox").style.display = "none";
+          document.getElementById("quizContainer").style.display = "block";
+          loadQuestion();
+          if (document.getElementById("langSelect").value !== "en") changeLanguage();
+        } else {
+          loadFallback();
+        }
+      } catch (error) {
+        loadFallback();
+      }
+    }
+
+    function loadFallback() {
+      const fallbackQuestions = {
+        "18": [
+          { question: "What does CPU stand for?", correct_answer: "Central Processing Unit", incorrect_answers: ["Computer Personal Unit", "Central Program Utility", "Control Processing User"] },
+          { question: "Which device is used to type text on a computer?", correct_answer: "Keyboard", incorrect_answers: ["Monitor", "Speaker", "Webcam"] },
+          { question: "Which of these is a web browser?", correct_answer: "Chrome", incorrect_answers: ["Excel", "Bluetooth", "Windows"] },
+          { question: "What does a computer mouse help you control?", correct_answer: "The pointer on screen", incorrect_answers: ["The screen brightness", "The internet speed", "The speaker volume"] },
+          { question: "Which key adds a space between words?", correct_answer: "Spacebar", incorrect_answers: ["Shift", "Escape", "Tab"] }
+        ],
+        "17": [
+          { question: "Which planet do we live on?", correct_answer: "Earth", incorrect_answers: ["Mars", "Venus", "Jupiter"] },
+          { question: "What do plants need from the Sun to make food?", correct_answer: "Light", incorrect_answers: ["Sound", "Metal", "Salt"] },
+          { question: "Which animal is known as man's best friend?", correct_answer: "Dog", incorrect_answers: ["Shark", "Eagle", "Lizard"] },
+          { question: "What is water made of?", correct_answer: "Hydrogen and oxygen", incorrect_answers: ["Gold and silver", "Iron and carbon", "Helium and neon"] },
+          { question: "Which part of a plant takes in water from the soil?", correct_answer: "Roots", incorrect_answers: ["Flowers", "Fruit", "Leaves"] }
+        ],
+        "23": [
+          { question: "Who was the first person to walk on the Moon?", correct_answer: "Neil Armstrong", incorrect_answers: ["Albert Einstein", "Isaac Newton", "Galileo Galilei"] },
+          { question: "Which ancient civilization built the pyramids at Giza?", correct_answer: "Ancient Egyptians", incorrect_answers: ["Romans", "Vikings", "Aztecs"] },
+          { question: "What did people use before coins became common money?", correct_answer: "Barter", incorrect_answers: ["Credit cards", "Paper checks", "Online banking"] },
+          { question: "The Great Wall is in which country?", correct_answer: "China", incorrect_answers: ["India", "Brazil", "Egypt"] },
+          { question: "Which invention helps people see faraway objects in space?", correct_answer: "Telescope", incorrect_answers: ["Microscope", "Compass", "Thermometer"] }
+        ],
+        "9": [
+          { question: "How many days are there in a week?", correct_answer: "Seven", incorrect_answers: ["Five", "Eight", "Ten"] },
+          { question: "Which color do you get by mixing blue and yellow?", correct_answer: "Green", incorrect_answers: ["Purple", "Orange", "Pink"] },
+          { question: "How many legs does a spider have?", correct_answer: "Eight", incorrect_answers: ["Six", "Four", "Ten"] },
+          { question: "Which meal is usually eaten in the morning?", correct_answer: "Breakfast", incorrect_answers: ["Dinner", "Supper", "Dessert"] },
+          { question: "What is frozen water called?", correct_answer: "Ice", incorrect_answers: ["Steam", "Rain", "Fog"] }
+        ],
+        "22": [
+          { question: "Which is the largest ocean on Earth?", correct_answer: "Pacific Ocean", incorrect_answers: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean"] },
+          { question: "Which continent is Egypt in?", correct_answer: "Africa", incorrect_answers: ["Europe", "South America", "Australia"] },
+          { question: "What is the capital city of France?", correct_answer: "Paris", incorrect_answers: ["Rome", "Madrid", "Lisbon"] },
+          { question: "Which direction does the Sun rise from?", correct_answer: "East", incorrect_answers: ["West", "North", "South"] },
+          { question: "Which country is shaped like a boot?", correct_answer: "Italy", incorrect_answers: ["Japan", "Canada", "Kenya"] }
+        ]
+      };
+      originalQuestions = fallbackQuestions[catId];
+      questions = JSON.parse(JSON.stringify(originalQuestions));
+      document.getElementById("langSelect").disabled = false;
+      document.getElementById("loadingBox").style.display = "none";
+      document.getElementById("quizContainer").style.display = "block";
+      loadQuestion();
+      if (document.getElementById("langSelect").value !== "en") changeLanguage();
+    }
+
+    // Timer stops immediately when translation is triggered
+    async function changeLanguage() {
+      resetTimer(); // Stops timer instantly
+      isTranslating = true;
+
+      const targetLang = document.getElementById("langSelect").value;
+      applyAppLanguage(targetLang);
+      const qTextEl = document.getElementById("questionText");
+
+      if (targetLang === "ur" || targetLang === "ar") {
+        qTextEl.classList.add("urdu-font");
+      } else {
+        qTextEl.classList.remove("urdu-font");
+      }
+
+      if (targetLang === "en") {
+        questions = JSON.parse(JSON.stringify(originalQuestions));
+        isTranslating = false;
+        loadQuestionUI();
+        return;
+      }
+
+      if (translatedQuestionSets.has(targetLang)) {
+        questions = JSON.parse(JSON.stringify(translatedQuestionSets.get(targetLang)));
+        isTranslating = false;
+        loadQuestionUI();
+        return;
+      }
+
+      document.getElementById("loadingBox").style.display = "block";
+      document.getElementById("quizContainer").style.display = "none";
+      document.getElementById("langSelect").disabled = true;
+
+      try {
+          const questionParts = originalQuestions.map(question => [
+            question.question,
+            question.correct_answer,
+            ...question.incorrect_answers
+          ]);
+          const qTexts = questionParts.flat();
+          const res = await fetch("/api/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ texts: qTexts, targetLang })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success || !Array.isArray(data.translatedTexts) || data.translatedTexts.length !== qTexts.length) {
+            throw new Error(data.message || "Translation service returned an incomplete translation.");
+          } else {
+            let offset = 0;
+            questions = originalQuestions.map(() => {
+              const translated = {
+                question: data.translatedTexts[offset++],
+                correct_answer: data.translatedTexts[offset++],
+                incorrect_answers: data.translatedTexts.slice(offset, offset + 3)
+              };
+              offset += 3;
+              return translated;
+            });
+            translatedQuestionSets.set(targetLang, questions);
+          }
+        } catch (err) {
+          if (navigator.onLine) {
+            showCustomError(err.message || "Translation is temporarily unavailable. English questions will be shown.");
+          }
+          qTextEl.classList.remove("urdu-font");
+          questions = JSON.parse(JSON.stringify(originalQuestions));
+      } finally {
+        isTranslating = false;
+        document.getElementById("langSelect").disabled = false;
+        document.getElementById("loadingBox").style.display = "none";
+        document.getElementById("quizContainer").style.display = "block";
+        loadQuestionUI(); // Restarts timer fresh after translation is fully loaded
+      }
+    }
+
+    function loadQuestion() {
+      loadQuestionUI();
+    }
+
+    function loadQuestionUI() {
+      if (currentIndex >= 5) { endQuiz(); return; }
+      isAnswered = false;
+      document.getElementById("langSelect").disabled = false;
+      resetTimer();
+
+      const q = questions[currentIndex];
+      document.getElementById("questionProgress").innerText =
+        appTranslate("questionProgress", { current: currentIndex + 1, total: 5 });
+      document.getElementById("scoreTracker").innerText = appTranslate("score", { score });
+      document.getElementById("progressBar").style.width = `${((currentIndex + 1) / 5) * 100}%`;
+      
+      const qTextEl = document.getElementById("questionText");
+      qTextEl.textContent = decodeHTML(q.question);
+
+      let options = [...q.incorrect_answers, q.correct_answer];
+      for (let index = options.length - 1; index > 0; index--) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [options[index], options[randomIndex]] = [options[randomIndex], options[index]];
+      }
+
+      const container = document.getElementById("optionsContainer");
+      container.innerHTML = "";
+
+      options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "unity-btn";
+        const targetLang = document.getElementById("langSelect").value;
+        const isRtl = (targetLang === "ur" || targetLang === "ar");
+
+        btn.style.cssText = `width: 100%; text-align: ${isRtl ? 'right' : 'left'}; background: rgba(255,255,255,0.04); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px 16px; font-size: 12px; display: flex; align-items: center; justify-content: space-between; ${isRtl ? 'font-family: "Noto Nastaliq Urdu", serif;' : ''}`;
+        const label = document.createElement("span");
+        label.textContent = decodeHTML(opt);
+        const icon = document.createElement("i");
+        icon.className = "fa-solid fa-chevron-right";
+        icon.style.cssText = "font-size: 9px; color: var(--text-muted);";
+        btn.append(label, icon);
+        btn.onclick = () => selectAnswer(opt, q.correct_answer, btn);
+        container.appendChild(btn);
+      });
+
+      startTimer();
+    }
+
+    function startTimer() {
+      if (isTranslating) return; // Do not start timer if translation is ongoing
+      timeLeft = timeLimit;
+      document.getElementById("timerDisplay").innerText = `${timeLeft}s`;
+      const bar = document.getElementById("timelineBar");
+      bar.style.animationDuration = `${timeLimit}s`;
+      bar.classList.remove("timer-animation");
+      void bar.offsetWidth;
+      bar.classList.add("timer-animation");
+
+      timer = setInterval(() => {
+        if (isTranslating) return;
+        timeLeft--;
+        document.getElementById("timerDisplay").innerText = `${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          if (!isAnswered) handleTimeUp();
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      const bar = document.getElementById("timelineBar");
+      bar.classList.remove("timer-animation");
+    }
+
+    function handleTimeUp() {
+      isAnswered = true;
+      document.getElementById("langSelect").disabled = true;
+      playOoSound();
+      setTimeout(() => { currentIndex++; loadQuestionUI(); }, 700);
+    }
+
+    function selectAnswer(selected, correct, btn) {
+      if (isAnswered) return;
+      isAnswered = true;
+      document.getElementById("langSelect").disabled = true;
+      resetTimer();
+
+      if (selected === correct) {
+        score++;
+        document.getElementById("scoreTracker").innerText = appTranslate("score", { score });
+        btn.style.background = "rgba(16, 185, 129, 0.2)";
+        btn.style.borderColor = "var(--accent-color)";
+      } else {
+        playOoSound();
+        btn.style.background = "rgba(239, 68, 68, 0.2)";
+        btn.style.borderColor = "var(--danger-color)";
+      }
+      setTimeout(() => { currentIndex++; loadQuestionUI(); }, 700);
+    }
+
+    function playOoSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(180, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.4);
+      } catch (error) {
+        console.error("Could not play the quiz sound:", error);
+      }
+    }
+
+    async function endQuiz() {
+      resetTimer();
+      document.getElementById("quizContainer").style.display = "none";
+      document.getElementById("resultContainer").style.display = "block";
+      document.getElementById("finalCorrect").innerText = `${score}/5`;
+
+      const passed = score >= 3;
+      const primaryBtn = document.getElementById("primaryActionBtn");
+
+      if (passed) {
+        document.getElementById("resultHeading").innerText = `${appTranslate("levelCompleted")} 🎉`;
+        document.getElementById("resultSubText").innerText = appTranslate("greatPerformance");
+        document.getElementById("finalStatus").innerText = appTranslate("passed");
+        document.getElementById("resultIconBox").style.background = "rgba(16,185,129,0.1)";
+        document.getElementById("resultIconBox").style.color = "var(--accent-color)";
+        document.getElementById("resultIcon").className = "fa-solid fa-trophy";
+        
+        primaryBtn.innerHTML = `${appTranslate("nextLevel")} <i class="fa-solid fa-arrow-right" style="margin-left: 4px;"></i>`;
+        primaryBtn.onclick = () => { window.location.href = `level.html`; };
+
+        if (typeof confetti === "function") {
+          confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        }
+
+        try {
+          LocalProfile.updateProgress(levelNum, score * 10);
+        } catch (error) {
+          showCustomError(error.message || "Your result could not be saved on this device.");
+        }
+      } else {
+        document.getElementById("resultHeading").innerText = `${appTranslate("levelFailed")} ❌`;
+        document.getElementById("resultSubText").innerText = appTranslate("needThreeCorrect");
+        document.getElementById("finalStatus").innerText = appTranslate("tryAgain");
+        document.getElementById("resultIconBox").style.background = "rgba(239,68,68,0.1)";
+        document.getElementById("resultIconBox").style.color = "var(--danger-color)";
+        document.getElementById("resultIcon").className = "fa-solid fa-triangle-exclamation";
+        
+        primaryBtn.innerHTML = `${appTranslate("tryAgain")} <i class="fa-solid fa-rotate-right" style="margin-left: 4px;"></i>`;
+        primaryBtn.onclick = () => restartQuiz();
+        playOoSound();
+      }
+    }
+
+    function restartQuiz() {
+      currentIndex = 0; score = 0;
+      document.getElementById("scoreTracker").innerText = appTranslate("score", { score });
+      document.getElementById("resultContainer").style.display = "none";
+      document.getElementById("quizContainer").style.display = "block";
+      loadQuestionUI();
+    }
+
+    function decodeHTML(html) {
+      const txt = document.createElement("textarea");
+      txt.innerHTML = html;
+      return txt.value;
+    }
+  </script>
+</body>
+</html>

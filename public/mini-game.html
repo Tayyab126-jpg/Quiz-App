@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
+  <title>Quiz Game - Memory Match</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .memory-grid { display: grid; grid-template-columns: repeat(4, minmax(54px, 1fr)); gap: 10px; width: 100%; }
+    .memory-card { min-height: 72px; border: 1px solid var(--border-color); border-radius: 14px; background: rgba(255,255,255,0.06); color: var(--text-main); font-size: 30px; cursor: pointer; }
+    .memory-card[aria-pressed="true"], .memory-card.matched { background: color-mix(in srgb, var(--accent-color) 18%, transparent); border-color: var(--accent-color); }
+    .memory-card:disabled { cursor: default; }
+    @media (max-width: 360px) { .memory-card { min-height: 62px; } }
+  </style>
+</head>
+<body class="theme-dark-emerald" style="height: 100dvh; justify-content: flex-start;">
+  <header style="padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="home.html" aria-label="Back home" style="color: var(--text-muted);"><i class="fa-solid fa-arrow-left"></i></a>
+      <div>
+        <h1 style="font-size: 14px; font-weight: 900;">Memory Match</h1>
+        <p id="playerLabel" style="font-size: 10px; color: var(--text-muted);">A fun game for everyone</p>
+      </div>
+    </div>
+    <button id="restartButton" type="button" class="unity-btn" style="padding: 10px 12px; font-size: 11px;">
+      <i class="fa-solid fa-rotate-right"></i> New Game
+    </button>
+  </header>
+  <main style="width: 100%; max-width: 420px; margin: auto; padding: 20px;">
+    <section class="unity-panel" style="padding: 20px; text-align: center;">
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Find all the matching animal pairs. No quiz or reading needed!</p>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 14px; font-size: 12px; font-weight: 700;">
+        <span>Moves: <span id="moveCount">0</span></span>
+        <span>Pairs: <span id="pairCount">0</span>/6</span>
+      </div>
+      <div id="memoryGrid" class="memory-grid" aria-label="Memory match cards"></div>
+      <p id="gameMessage" role="status" style="min-height: 24px; margin-top: 14px; font-size: 12px; color: var(--accent-color);"></p>
+      <p id="bestScore" style="font-size: 10px; color: var(--text-muted);">Best score: 0</p>
+    </section>
+  </main>
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script>
+    const symbols = ["🐶", "🐱", "🐼", "🦊", "🐸", "🐵"];
+    const grid = document.getElementById("memoryGrid");
+    let firstCard = null;
+    let locked = false;
+    let moves = 0;
+    let pairs = 0;
+    let bestScore = 0;
+    const profile = LocalProfile.getCurrent();
+
+    function startGame() {
+      const cards = [...symbols, ...symbols];
+      for (let index = cards.length - 1; index > 0; index--) {
+        const otherIndex = Math.floor(Math.random() * (index + 1));
+        [cards[index], cards[otherIndex]] = [cards[otherIndex], cards[index]];
+      }
+      firstCard = null;
+      locked = false;
+      moves = 0;
+      pairs = 0;
+      document.getElementById("moveCount").textContent = moves;
+      document.getElementById("pairCount").textContent = pairs;
+      document.getElementById("gameMessage").textContent = "Tap any two cards to find a pair!";
+      grid.replaceChildren();
+
+      cards.forEach((symbol, index) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "memory-card";
+        card.textContent = "❔";
+        card.setAttribute("aria-label", `Hidden card ${index + 1}`);
+        card.setAttribute("aria-pressed", "false");
+        card.addEventListener("click", () => flipCard(card, symbol, index));
+        grid.appendChild(card);
+      });
+    }
+
+    function flipCard(card, symbol, index) {
+      if (locked || card.disabled || card === firstCard) return;
+      card.textContent = symbol;
+      card.setAttribute("aria-label", symbol);
+      card.setAttribute("aria-pressed", "true");
+      if (!firstCard) {
+        firstCard = card;
+        return;
+      }
+
+      moves++;
+      document.getElementById("moveCount").textContent = moves;
+      if (firstCard.textContent === symbol) {
+        firstCard.disabled = true;
+        card.disabled = true;
+        firstCard.classList.add("matched");
+        card.classList.add("matched");
+        pairs++;
+        document.getElementById("pairCount").textContent = pairs;
+        firstCard = null;
+        if (pairs === symbols.length) finishGame();
+        return;
+      }
+
+      locked = true;
+      const previousCard = firstCard;
+      firstCard = null;
+      window.setTimeout(() => {
+        [previousCard, card].forEach(hiddenCard => {
+          hiddenCard.textContent = "❔";
+          hiddenCard.setAttribute("aria-label", "Hidden card");
+          hiddenCard.setAttribute("aria-pressed", "false");
+        });
+        locked = false;
+      }, 700);
+    }
+
+    function finishGame() {
+      const score = Math.max(0, 120 - moves * 5);
+      try {
+        if (profile) {
+          bestScore = LocalProfile.saveMemoryScore(score);
+        } else {
+          bestScore = Math.max(bestScore, score);
+          localStorage.setItem("memoryMatchGuestBest", String(bestScore));
+        }
+        document.getElementById("bestScore").textContent = `Best score: ${bestScore}`;
+        document.getElementById("gameMessage").textContent = `Amazing job! You found every pair in ${moves} moves!`;
+      } catch (error) {
+        document.getElementById("gameMessage").textContent = error.message;
+      }
+    }
+
+    document.body.className = localStorage.getItem("appTheme") || "theme-dark-emerald";
+    document.getElementById("playerLabel").textContent = profile
+      ? `Playing with ${profile.name}`
+      : "Guest game · saved on this device";
+    bestScore = profile
+      ? profile.bestMemoryScore
+      : Number(localStorage.getItem("memoryMatchGuestBest")) || 0;
+    document.getElementById("bestScore").textContent = `Best score: ${bestScore}`;
+    document.getElementById("restartButton").addEventListener("click", startGame);
+    startGame();
+  </script>
+</body>
+</html>

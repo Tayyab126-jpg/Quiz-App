@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
+  <title>Quiz Engine - Level Selector</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body id="appBody" class="theme-dark-emerald">
+
+  <header style="padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 38px; height: 38px; background: var(--accent-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div>
+        <h1 data-i18n="levelProgression" style="font-size: 13px; font-weight: 800;">Level Progression (1 - 100)</h1>
+        <p style="font-size: 10px; color: var(--text-muted);" id="userProgressionInfo">Loading this device’s progress...</p>
+      </div>
+    </div>
+    <select id="appLanguage" aria-label="Choose language" style="width: auto; padding: 8px 10px; font-size: 11px;">
+      <option value="en">English</option><option value="ur">اردو</option>
+      <option value="es">Español</option><option value="ar">العربية</option>
+    </select>
+    <a href="home.html" class="unity-btn" style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--text-main); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; text-decoration: none;">
+      <i class="fa-solid fa-house"></i>
+    </a>
+  </header>
+
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto;" class="no-scrollbar">
+    <div style="width: 100%; max-width: 420px;" id="levelsContainer">
+      <!-- Levels are unlocked from this device's saved profile. -->
+      <div style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 12px;">Loading saved levels...</div>
+    </div>
+  </main>
+
+  <!-- CATEGORY SELECTION MODAL -->
+  <div id="categoryModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 50;">
+    <div class="unity-panel" style="width: 100%; max-width: 340px; padding: 24px; text-align: center;">
+      <h3 id="modalTitle" style="font-size: 15px; font-weight: 800; margin-bottom: 4px;">Select Category</h3>
+      <p data-i18n="chooseTopic" style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">Choose a topic for this level</p>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; text-align: left;" id="categoriesList">
+        <!-- Injected categories -->
+      </div>
+      <button onclick="closeCategoryModal()" data-i18n="cancel" style="background: none; border: none; color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: pointer;">Cancel</button>
+    </div>
+  </div>
+
+  <footer style="padding: 12px 24px; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border-color);">
+    <a href="home.html" style="color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 500;">
+      <i class="fa-solid fa-house" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="home">Home</span>
+    </a>
+
+    <a href="level.html" style="color: var(--accent-color); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 700;">
+      <i class="fa-solid fa-layer-group" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="levels">Levels</span>
+    </a>
+    <a href="chats.html" style="color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px;">
+  <i class="fa-solid fa-comments" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="chat">Chat</span>
+</a>
+    <a href="leaderboard.html" style="color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 500;">
+      <i class="fa-solid fa-trophy" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="leaderboard">Leaderboard</span>
+    </a>
+  </footer>
+
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script src="i18n.js"></script>
+  <script>
+    let activeLevel = 1;
+    let maxUnlockedLevel = 1;
+    const categories = [
+      { id: 18, key: "computers" },
+      { id: 17, key: "science" },
+      { id: 23, key: "history" },
+      { id: 9, key: "generalKnowledge" },
+      { id: 22, key: "geography" }
+    ];
+
+    window.onload = async function() {
+      const profile = LocalProfile.getCurrent();
+      if (!profile) { window.location.href = "login.html"; return; }
+      maxUnlockedLevel = Math.min(100, Math.max(1, Number(profile.completedLevel) || 1));
+      document.getElementById("userProgressionInfo").innerText =
+        `${appTranslate("highestUnlocked", { level: maxUnlockedLevel })} · saved on this device`;
+      renderLevels();
+      renderCategories();
+      const savedTheme = localStorage.getItem("appTheme") || "theme-dark-emerald";
+      document.body.className = savedTheme;
+    };
+
+    // Generate the 100 levels using the saved local progression.
+    function renderLevels() {
+      const container = document.getElementById("levelsContainer");
+      container.innerHTML = "";
+      let i = 1;
+
+      while (i <= 100) {
+        const levelNumber = i;
+        const isUnlocked = levelNumber <= maxUnlockedLevel;
+        const diffKey = levelNumber <= 33 ? "easy" : levelNumber <= 66 ? "medium" : "hard";
+        const diff = appTranslate(diffKey);
+
+        const card = document.createElement("div");
+        card.className = "unity-panel";
+        card.style.cssText = `padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border-color: ${isUnlocked ? 'var(--border-color)' : 'rgba(255,255,255,0.03)'}; opacity: ${isUnlocked ? '1' : '0.4'};`;
+
+        card.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; background: ${isUnlocked ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${isUnlocked ? 'var(--accent-color)' : 'var(--border-color)'}; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: ${isUnlocked ? 'var(--accent-color)' : 'var(--text-muted)'}; font-size: 12px;">
+              <i class="fa-solid ${isUnlocked ? 'fa-unlock' : 'fa-lock'}"></i>
+            </div>
+            <div style="text-align: left;">
+              <h4 style="font-size: 13px; font-weight: 800;">Level ${levelNumber}</h4>
+              <p style="font-size: 10px; color: var(--text-muted);">${appTranslate("difficulty", { difficulty: diff })}</p>
+            </div>
+          </div>
+          <span style="font-size: 12px; font-weight: 700; color: ${isUnlocked ? 'var(--accent-color)' : 'var(--text-muted)'};">
+            ${isUnlocked ? `${appTranslate("play")} <i class="fa-solid fa-chevron-right" style="font-size: 9px; margin-left: 2px;"></i>` : '<i class="fa-solid fa-lock"></i>'}
+          </span>
+        `;
+
+        if (isUnlocked) {
+          card.style.cursor = "pointer";
+          card.onclick = () => {
+            activeLevel = levelNumber;
+            document.getElementById("modalTitle").innerText = `Level ${levelNumber} - ${appTranslate("selectCategory")}`;
+            document.getElementById("categoryModal").style.display = "flex";
+          };
+        }
+
+        container.appendChild(card);
+        i++;
+      }
+    }
+
+    function renderCategories() {
+      const list = document.getElementById("categoriesList");
+      list.innerHTML = "";
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = "unity-btn";
+        btn.style.cssText = "width: 100%; padding: 12px; text-align: left; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); font-size: 12px; display: flex; align-items: center; justify-content: space-between;";
+        btn.innerHTML = `<span>${appTranslate(cat.key)}</span> <i class="fa-solid fa-arrow-right" style="font-size: 10px; color: var(--accent-color);"></i>`;
+        btn.onclick = () => {
+          window.location.href = `quiz.html?level=${activeLevel}&cat=${cat.id}`;
+        };
+        list.appendChild(btn);
+      });
+    }
+
+    document.getElementById("appLanguage").addEventListener("change", () => {
+      document.getElementById("userProgressionInfo").innerText =
+        appTranslate("highestUnlocked", { level: maxUnlockedLevel });
+      renderLevels();
+      renderCategories();
+    });
+
+    function closeCategoryModal() {
+      document.getElementById("categoryModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>

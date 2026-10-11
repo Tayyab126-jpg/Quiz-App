@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#020617">
+  <link rel="manifest" href="manifest.json">
+  <title>Quiz Engine - Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body id="appBody" class="theme-dark-emerald">
+
+  <!-- TOP HEADER -->
+  <header style="padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 38px; height: 38px; background: var(--accent-gradient); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;">
+        <i class="fa-solid fa-gamepad"></i>
+      </div>
+      <div>
+        <h1 id="userNameDisplay" style="font-size: 13px; font-weight: 800;">Loading...</h1>
+        <p id="userEmailDisplay" style="font-size: 10px; color: var(--text-muted);">Loading this device profile...</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <select id="appLanguage" aria-label="Choose language" style="width: auto; padding: 8px 10px; font-size: 11px;">
+        <option value="en">English</option><option value="ur">اردو</option>
+        <option value="es">Español</option><option value="ar">العربية</option>
+      </select>
+      <button onclick="toggleSidebar()" class="unity-btn" aria-label="Open menu" style="width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--text-main); border: 1px solid var(--border-color);">
+      <i class="fa-solid fa-bars-staggered"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN HUD -->
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+    <div class="unity-panel" style="padding: 40px; max-width: 400px; width: 100%; display: flex; flex-direction: column; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+      <div style="width: 64px; height: 64px; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-color); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--accent-color); margin-bottom: 20px;">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+      <h2 data-i18n="arenaTitle" style="font-size: 20px; font-weight: 900; margin-bottom: 8px;">Quiz Progression Arena</h2>
+      <p data-i18n="arenaDescription" style="font-size: 12px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5;">Play quiz levels and fun mini-games. Your progress stays on this device.</p>
+      <a href="level.html" class="unity-btn" style="padding: 14px 28px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-play text-[10px]"></i> <span data-i18n="enterLevels">Enter Level Selector</span>
+      </a>
+      <a href="mini-game.html" class="unity-btn" style="margin-top: 10px; padding: 12px 24px; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-color);">
+        <i class="fa-solid fa-shapes"></i> Play Memory Match
+      </a>
+    </div>
+  </main>
+
+  <!-- BOTTOM NAVBAR -->
+  <footer style="padding: 12px 24px; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border-color);">
+    <a href="home.html" style="color: var(--accent-color); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 700;">
+      <i class="fa-solid fa-house" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="home">Home</span>
+    </a>
+    <a href="leaderboard.html" style="color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 500;">
+      <i class="fa-solid fa-chart-line" style="font-size: 14px; margin-bottom: 2px;"></i> My Progress
+    </a>
+    <a href="chats.html" style="color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 10px;">
+  <i class="fa-solid fa-comments" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="chat">Chat</span>
+</a>
+    <button type="button" onclick="toggleSidebar()" style="background: none; border: 0; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: 500; cursor: pointer;">
+      <i class="fa-solid fa-palette" style="font-size: 14px; margin-bottom: 2px;"></i> <span data-i18n="themes">Themes</span>
+    </button>
+  </footer>
+
+  <!-- SIDEBAR MENU (12 Themes) -->
+  <div id="sidebarOverlay" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 40;" onclick="toggleSidebar()"></div>
+  <aside id="sidebarMenu" class="unity-panel" style="position: fixed; top: 0; right: 0; height: 100%; width: 280px; z-index: 50; transform: translateX(100%); transition: transform 0.3s ease; display: flex; flex-direction: column; justify-content: space-between; gap: 16px; padding: 24px; border-radius: 0; overflow-y: auto;">
+    <div style="flex: 1;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+        <h3 style="font-size: 13px; font-weight: 800;"><i class="fa-solid fa-palette" style="color: var(--accent-color); margin-right: 6px;"></i> 12 Theme Presets</h3>
+        <button onclick="toggleSidebar()" aria-label="Close menu" style="background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <nav aria-label="Game information and tools" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+        <a class="nav-link-button" href="ai.html"><i class="fa-solid fa-wand-magic-sparkles"></i> Ask Arena Buddy AI</a>
+        <a class="nav-link-button" href="about.html"><i class="fa-solid fa-circle-info"></i> About Us</a>
+        <a class="nav-link-button" href="privacy.html"><i class="fa-solid fa-shield-halved"></i> Privacy Policy</a>
+      </nav>
+
+      <!-- Theme buttons grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 380px; overflow-y: auto;" class="no-scrollbar">
+        <button onclick="setTheme('theme-dark-emerald')" style="padding: 8px; background: #020617; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Dark Emerald</button>
+        <button onclick="setTheme('theme-blue-white')" style="padding: 8px; background: #ffffff; border: 1px solid #3b82f6; color: #2563eb; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Blue White</button>
+        <button onclick="setTheme('theme-orange-white')" style="padding: 8px; background: #ffffff; border: 1px solid #f97316; color: #ea580c; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Orange White</button>
+        <button onclick="setTheme('theme-pitch-black')" style="padding: 8px; background: #000000; border: 1px solid #262626; color: #ffffff; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Pitch Black</button>
+        <button onclick="setTheme('theme-purple-dark')" style="padding: 8px; background: #090214; border: 1px solid #9333ea; color: #c084fc; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Purple Dark</button>
+        <button onclick="setTheme('theme-rose-white')" style="padding: 8px; background: #ffffff; border: 1px solid #f43f5e; color: #e11d48; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Rose White</button>
+        <button onclick="setTheme('theme-amber-dark')" style="padding: 8px; background: #110c02; border: 1px solid #d97706; color: #d97706; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Amber Dark</button>
+        <button onclick="setTheme('theme-cyan-white')" style="padding: 8px; background: #ffffff; border: 1px solid #06b6d4; color: #0891b2; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Cyan White</button>
+        <button onclick="setTheme('theme-emerald-white')" style="padding: 8px; background: #ffffff; border: 1px solid #10b981; color: #059669; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Emerald White</button>
+        <button onclick="setTheme('theme-indigo-dark')" style="padding: 8px; background: #02040a; border: 1px solid #6366f1; color: #818cf8; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Indigo Dark</button>
+        <button onclick="setTheme('theme-slate-light')" style="padding: 8px; background: #f8fafc; border: 1px solid #64748b; color: #334155; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Slate Light</button>
+        <button onclick="setTheme('theme-crimson-dark')" style="padding: 8px; background: #140202; border: 1px solid #ef4444; color: #f87171; border-radius: 8px; font-size: 10px; font-weight: 700; text-align: left; cursor: pointer;">Crimson Dark</button>
+      </div>
+    </div>
+    <div>
+      <button onclick="handleLogout()" class="unity-btn" style="width: 100%; padding: 12px; font-size: 11px; background: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: 1px solid rgba(239, 68, 68, 0.2);">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout Account
+      </button>
+    </div>
+  </aside>
+
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script src="i18n.js"></script>
+  <script>
+    // AUTH GUARD & SERVER SYNC
+    window.onload = async function() {
+      const profile = LocalProfile.getCurrent();
+      if (!profile) {
+      window.location.href = "login.html";
+      return;
+      }
+
+      setTheme(localStorage.getItem("appTheme") || "theme-dark-emerald", false);
+      document.getElementById("userNameDisplay").innerText = profile.name;
+      document.getElementById("userEmailDisplay").innerText = `${profile.email} · Level ${profile.completedLevel} · saved on this device`;
+    };
+
+    function toggleSidebar() {
+      const sb = document.getElementById("sidebarMenu");
+      const ov = document.getElementById("sidebarOverlay");
+      const isOpen = sb.style.transform === "translateX(0px)";
+      sb.style.transform = isOpen ? "translateX(100%)" : "translateX(0px)";
+      ov.style.display = isOpen ? "none" : "block";
+    }
+
+    function setTheme(themeName, save = true) {
+      if (save) localStorage.setItem("appTheme", themeName);
+      document.body.className = themeName;
+    }
+
+    function handleLogout() {
+      LocalProfile.logout();
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

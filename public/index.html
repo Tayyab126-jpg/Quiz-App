@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#06121b">
+  <meta name="description" content="Build your knowledge one level at a time with Quiz Arena. Play quick quizzes and offline-friendly games, with progress saved on your device.">
+  <title>Quiz Arena — Learn one level at a time</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="landing-page">
+  <header class="landing-header">
+    <a class="brand" href="/" aria-label="Quiz Arena home">
+      <img src="logo.svg" alt="" width="42" height="42">
+      <span>Quiz <strong>Arena</strong></span>
+    </a>
+    <nav class="landing-nav" aria-label="Main navigation">
+      <a href="#how-it-works" data-i18n="howItWorks">How it works</a>
+      <label class="language-picker">
+        <span class="sr-only">Language</span>
+        <select id="appLanguage" aria-label="Choose language">
+          <option value="en">English</option><option value="ur">اردو</option>
+          <option value="es">Español</option><option value="ar">العربية</option>
+        </select>
+      </label>
+      <a class="landing-login" href="login.html" data-i18n="login">Log in</a>
+      <a class="unity-btn landing-cta" href="signup.html" id="startLink" data-i18n="getStarted">Get started</a>
+    </nav>
+  </header>
+  <main>
+    <section class="landing-hero">
+      <div class="hero-copy">
+        <span class="eyebrow" data-i18n="learnByPlaying">LEARN BY PLAYING</span>
+        <h1 data-i18n="heroTitle">Small questions.<br><span>Big brain energy.</span></h1>
+        <p data-i18n="heroDescription">Take a quick quiz, build a streak, and unlock harder levels as you learn. Start easy and make every answer count.</p>
+        <div class="hero-actions">
+          <a class="unity-btn landing-cta" href="signup.html" id="heroStartLink"><span data-i18n="startPlaying">Start playing</span><span aria-hidden="true">→</span></a>
+          <a class="hero-secondary" href="mini-game.html">Play Memory Match</a>
+          <a class="hero-secondary" href="#how-it-works" data-i18n="seeHowItWorks">See how it works</a>
+        </div>
+        <div class="hero-proof"><span aria-hidden="true">✦</span> <span data-i18n="fiveQuestions">5 questions per level · Progress that saves</span></div>
+      </div>
+      <div class="hero-art" aria-label="Quiz Arena level progression preview">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="hero-card">
+          <div class="hero-card-top"><span class="status-dot"></span><span data-i18n="yourNextChallenge">YOUR NEXT CHALLENGE</span><span class="hero-card-mark">✦</span></div>
+          <div class="hero-level">01</div>
+          <div class="hero-level-label" data-i18n="levelOneEasy">LEVEL ONE · EASY</div>
+          <div class="hero-progress"><i></i></div>
+          <div class="hero-card-bottom"><span data-i18n="fiveQuickQuestions">5 quick questions</span><span>~2 min</span></div>
+          <div class="floating-badge badge-spark">✦ <span data-i18n="keepYourStreak">Keep your streak</span></div>
+          <div class="floating-badge badge-check">✓ <span data-i18n="progressSaved">Progress saved</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="feature-strip" id="how-it-works">
+      <article><span class="feature-icon">01</span><h2 data-i18n="startEasy">Start easy</h2><p data-i18n="startEasyBody">Your first level is beginner-friendly. Learn at your own pace.</p></article>
+      <article><span class="feature-icon">↗</span><h2 data-i18n="levelUp">Level up</h2><p data-i18n="levelUpBody">Pass a level to unlock the next challenge and harder questions.</p></article>
+      <article><span class="feature-icon">◎</span><h2>Play anywhere</h2><p>Enjoy local games offline, with progress saved privately on your device.</p></article>
+    </section>
+  </main>
+  <footer class="landing-footer"><span>© <span id="year"></span> Quiz Arena</span><a href="privacy.html" data-i18n="privacy">Privacy</a></footer>
+  <script src="i18n.js"></script>
+  <script src="local-profile.js"></script>
+  <script src="offline.js"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+    if (LocalProfile.getCurrent()) {
+      document.getElementById("startLink").href = "home.html";
+      document.getElementById("heroStartLink").href = "home.html";
+      document.querySelector(".landing-login").hidden = true;
+    }
+  </script>
+</body>
+</html>
