@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
   <title>Quiz Engine - Login</title>
@@ -16,7 +17,7 @@
       <i class="fa-solid fa-gamepad"></i>
     </div>
     <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 5px;">Player Authentication</h2>
-    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 25px;">Sign in to your profile saved on this device</p>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 25px;">Sign in to your Quiz Game account</p>
 
     <form onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
       <div>
@@ -33,7 +34,7 @@
     <p style="font-size: 11px; color: var(--text-muted); margin-top: 12px;">New player? <a href="signup.html" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Create Account</a></p>
   </div>
 
-  <script src="local-profile.js"></script>
+  <script src="api-client.js"></script>
   <script src="offline.js"></script>
   <script src="auth-ui.js"></script>
   <script>
@@ -42,14 +43,31 @@
       const email = document.getElementById("email").value.trim().toLowerCase();
       const password = document.getElementById("password").value;
       const btn = document.getElementById("submitBtn");
-      btn.innerText = "Opening Profile...";
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userEmail");
+      btn.innerText = "Connecting to Server...";
       btn.disabled = true;
 
       try {
-        await LocalProfile.login(email, password);
+        if (!navigator.onLine) {
+          await showAuthAlert("You are offline. Connect to the internet and try logging in again.", "offline");
+          return;
+        }
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success || !data.token || !data.user || !data.user.email) {
+          await showAuthAlert(data.message || "Invalid login credentials.");
+          return;
+        }
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userEmail", data.user.email);
         window.location.href = "home.html";
       } catch (err) {
-        await showAuthAlert(err.message || "Could not open your local profile.");
+        await showAuthAlert(navigator.onLine ? "Could not connect to the server. Please try again." : "You are offline. Connect to the internet and try logging in again.", navigator.onLine ? "error" : "offline");
       } finally {
         btn.innerText = "Login to Arena";
         btn.disabled = false;

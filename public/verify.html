@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
   <title>Quiz Engine - Security Verification</title>
@@ -19,7 +20,7 @@
       <i class="fa-solid fa-shield-halved"></i>
     </div>
     <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 5px;">Human Verification</h2>
-    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 25px;">Quick device check to create your local profile</p>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 25px;">Solve security CAPTCHA to finish signup</p>
 
     <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 12px 16px; border-radius: 10px; margin-bottom: 15px;">
       <span id="captchaText" style="font-family: monospace; font-size: 18px; font-weight: 800; letter-spacing: 4px; color: var(--accent-color);"></span>
@@ -33,7 +34,7 @@
     <button id="verifyBtn" onclick="verifyAndRegister()" class="unity-btn" style="width: 100%; padding: 12px; font-size: 12px;">Verify & Register</button>
   </div>
 
-  <script src="local-profile.js"></script>
+  <script src="api-client.js"></script>
   <script src="offline.js"></script>
   <script src="auth-ui.js"></script>
   <script>
@@ -81,12 +82,26 @@
       verifyButton.disabled = true;
       verifyButton.innerText = "Registering...";
       try {
-        await LocalProfile.create(signupData);
+        if (!navigator.onLine) {
+          await showAuthAlert("You are offline. Connect to the internet and try again.", "offline");
+          return;
+        }
+        const response = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(signupData)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          await showAuthAlert(data.message || "Registration failed.");
+          generateCaptcha();
+          return;
+        }
         sessionStorage.removeItem("tempSignupData");
-        await showAuthAlert("Profile created and saved on this device.", "success");
-        window.location.href = "home.html";
+        await showAuthAlert("Verification successful! Account created.", "success");
+        window.location.href = "login.html";
       } catch (err) {
-        await showAuthAlert(err.message || "Could not create your local profile.");
+        await showAuthAlert(navigator.onLine ? "Could not connect to the server. Please try again." : "You are offline. Connect to the internet and try again.", navigator.onLine ? "error" : "offline");
         generateCaptcha();
       } finally {
         verifyButton.disabled = false;

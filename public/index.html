@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#06121b">
   <meta name="description" content="Build your knowledge one level at a time with Quiz Arena. Play quick quizzes and offline-friendly games, with progress saved on your device.">
   <title>Quiz Arena — Learn one level at a time</title>
@@ -66,7 +67,7 @@
   <script src="offline.js"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
-    if (LocalProfile.getCurrent()) {
+    if (localStorage.getItem("authToken")) {
       document.getElementById("startLink").href = "home.html";
       document.getElementById("heroStartLink").href = "home.html";
       document.querySelector(".landing-login").hidden = true;

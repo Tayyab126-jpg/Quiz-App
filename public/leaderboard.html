@@ -3,46 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
-  <title>Quiz Engine - Local Progress</title>
+  <title>Quiz Engine - Leaderboard</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="theme-dark-emerald" style="height: 100dvh; justify-content: flex-start;">
+<body id="appBody" class="theme-dark-emerald" style="display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden;">
   <header style="padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color);">
     <div style="display: flex; align-items: center; gap: 10px;">
       <div style="width: 36px; height: 36px; display: grid; place-items: center; color: #f59e0b;"><i class="fa-solid fa-trophy"></i></div>
       <div>
-        <h1 style="font-size: 13px; font-weight: 800;">My Game Progress</h1>
-        <p style="font-size: 10px; color: var(--text-muted);">Saved privately on this device</p>
+        <h1 style="font-size: 13px; font-weight: 800;">Global Leaderboard</h1>
+        <p style="font-size: 10px; color: var(--text-muted);">Rankings loaded from the server</p>
       </div>
     </div>
     <a href="home.html" class="unity-btn" aria-label="Home" style="width: 36px; height: 36px; display: grid; place-items: center; color: var(--text-main); text-decoration: none;"><i class="fa-solid fa-house"></i></a>
   </header>
-  <main style="width: 100%; max-width: 420px; margin: auto; padding: 20px;">
-    <section id="progressCard" class="unity-panel" style="padding: 24px; text-align: center;"></section>
-    <p style="margin: 16px 4px; color: var(--text-muted); font-size: 11px; line-height: 1.5;">Online leaderboards are off because profiles and scores are never uploaded. Your scores stay on this device.</p>
+  <main style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto;" class="no-scrollbar">
+    <input type="search" id="searchInput" placeholder="Search players..." aria-label="Search players" style="width: 100%; max-width: 420px; margin-bottom: 15px;">
+    <p id="leaderboardStatus" role="status" style="width: 100%; max-width: 420px; color: var(--text-muted); font-size: 11px; margin-bottom: 10px;">Loading leaderboard...</p>
+    <div style="width: 100%; max-width: 420px;" id="leaderboardList"></div>
   </main>
   <footer style="padding: 12px 24px; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border-color);">
     <a href="home.html" style="color: var(--text-muted); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-house"></i> Home</a>
     <a href="chats.html" style="color: var(--text-muted); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-comments"></i> Chat</a>
-    <a href="mini-game.html" style="color: var(--accent-color); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-shapes"></i> Games</a>
+    <a href="leaderboard.html" style="color: var(--accent-color); text-decoration: none; font-size: 10px;"><i class="fa-solid fa-trophy"></i> Leaderboard</a>
   </footer>
-  <script src="local-profile.js"></script>
+  <script src="api-client.js"></script>
   <script src="offline.js"></script>
   <script>
-    const profile = LocalProfile.getCurrent();
-    if (!profile) window.location.href = "login.html";
-    else {
-      document.body.className = localStorage.getItem("appTheme") || "theme-dark-emerald";
-      document.getElementById("progressCard").innerHTML =
-        `<h2 style="font-size: 16px; margin-bottom: 8px;"></h2><p style="font-size: 12px; color: var(--text-muted);"></p><p style="margin-top: 12px; font-size: 12px; color: var(--accent-color);"></p>`;
-      const [name, level, score] = document.querySelectorAll("#progressCard h2, #progressCard p");
-      name.textContent = profile.name;
-      level.textContent = `Current level: ${profile.completedLevel}`;
-      score.textContent = `Quiz score: ${profile.totalScore} · Memory best: ${profile.bestMemoryScore}`;
+    let rankings = [];
+    const container = document.getElementById("leaderboardList");
+    const status = document.getElementById("leaderboardStatus");
+    const search = document.getElementById("searchInput");
+
+    function renderLeaderboard() {
+      const query = search.value.trim().toLowerCase();
+      const filtered = rankings.filter(player => player.name.toLowerCase().includes(query));
+      container.replaceChildren();
+      if (filtered.length === 0) {
+        status.textContent = rankings.length ? "No players match your search." : "No players are ranked yet.";
+        return;
+      }
+      status.textContent = `${filtered.length} player${filtered.length === 1 ? "" : "s"}`;
+      filtered.forEach((player, index) => {
+        const card = document.createElement("div");
+        card.className = "unity-panel";
+        card.style.cssText = "padding: 12px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px;";
+        const rank = document.createElement("strong");
+        rank.style.cssText = `width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: ${index === 0 ? "rgba(245,158,11,0.2)" : "rgba(255,255,255,0.05)"}; color: ${index === 0 ? "#f59e0b" : "var(--text-muted)"};`;
+        rank.textContent = `#${rankings.indexOf(player) + 1}`;
+        const details = document.createElement("div");
+        const name = document.createElement("h2");
+        name.style.cssText = "font-size: 12px; font-weight: 800;";
+        name.textContent = player.name;
+        const score = document.createElement("p");
+        score.style.cssText = "font-size: 10px; color: var(--text-muted);";
+        score.textContent = `Level ${player.completedLevel || 1} · Score ${player.totalScore || 0}`;
+        details.append(name, score);
+        card.append(rank, details);
+        container.appendChild(card);
+      });
     }
+
+    search.addEventListener("input", renderLeaderboard);
+    window.onload = async function() {
+      if (!localStorage.getItem("authToken")) {
+        window.location.href = "login.html";
+        return;
+      }
+      document.body.className = localStorage.getItem("appTheme") || "theme-dark-emerald";
+      try {
+        const response = await apiFetch("/api/leaderboard");
+        const data = await response.json();
+        if (!response.ok || !data.success || !Array.isArray(data.rankings)) {
+          throw new Error(data.message || "Could not load the leaderboard.");
+        }
+        rankings = data.rankings.filter(player =>
+          player && typeof player.name === "string" &&
+          Number.isInteger(player.completedLevel) &&
+          Number.isInteger(player.totalScore)
+        );
+        renderLeaderboard();
+      } catch (error) {
+        status.textContent = error.message || "Could not connect to the leaderboard server.";
+      }
+    };
   </script>
 </body>
 </html>

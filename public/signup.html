@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
   <title>Quiz Engine - Register</title>
@@ -16,7 +17,7 @@
       <i class="fa-solid fa-user-plus"></i>
     </div>
     <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 5px;">Create Player Profile</h2>
-    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 25px;">Your profile and progress stay on this device</p>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 25px;">Your game profile and progress sync online</p>
 
     <form onsubmit="handleSignup(event)" style="display: flex; flex-direction: column; gap: 14px; text-align: left;">
       <div>
@@ -36,7 +37,7 @@
     <p style="font-size: 11px; color: var(--text-muted); margin-top: 20px;">Already registered? <a href="login.html" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Login Here</a></p>
   </div>
 
-  <script src="local-profile.js"></script>
+  <script src="api-client.js"></script>
   <script src="offline.js"></script>
   <script src="auth-ui.js"></script>
   <script>
@@ -50,6 +51,10 @@
       btn.disabled = true;
 
       try {
+        if (!navigator.onLine) {
+          await showAuthAlert("You are offline. Connect to the internet and try registering again.", "offline");
+          return;
+        }
         if (password.length < 8 || password.length > 128) {
           await showAuthAlert("Choose a password between 8 and 128 characters.");
           return;

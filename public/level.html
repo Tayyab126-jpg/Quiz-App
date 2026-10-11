@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
   <title>Quiz Engine - Level Selector</title>
@@ -67,7 +68,7 @@
     </a>
   </footer>
 
-  <script src="local-profile.js"></script>
+  <script src="api-client.js"></script>
   <script src="offline.js"></script>
   <script src="i18n.js"></script>
   <script>
@@ -82,13 +83,23 @@
     ];
 
     window.onload = async function() {
-      const profile = LocalProfile.getCurrent();
-      if (!profile) { window.location.href = "login.html"; return; }
-      maxUnlockedLevel = Math.min(100, Math.max(1, Number(profile.completedLevel) || 1));
-      document.getElementById("userProgressionInfo").innerText =
-        `${appTranslate("highestUnlocked", { level: maxUnlockedLevel })} · saved on this device`;
-      renderLevels();
-      renderCategories();
+      if (!localStorage.getItem("userEmail") || !localStorage.getItem("authToken")) {
+        window.location.href = "login.html";
+        return;
+      }
+      try {
+        const response = await apiFetch("/api/user");
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Could not load level progress.");
+        maxUnlockedLevel = Math.min(100, Math.max(1, Number(data.user.completedLevel) || 1));
+        document.getElementById("userProgressionInfo").innerText =
+          appTranslate("highestUnlocked", { level: maxUnlockedLevel });
+        renderLevels();
+        renderCategories();
+      } catch (error) {
+        document.getElementById("userProgressionInfo").innerText = error.message || "Could not connect to the server.";
+        document.getElementById("levelsContainer").innerText = "Progress could not be loaded. Please try again.";
+      }
       const savedTheme = localStorage.getItem("appTheme") || "theme-dark-emerald";
       document.body.className = savedTheme;
     };

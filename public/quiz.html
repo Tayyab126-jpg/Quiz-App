@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="https://quiz-app-git-main-tab-bi.vercel.app/">
   <meta name="theme-color" content="#020617">
   <link rel="manifest" href="manifest.json">
   <title>Quiz Engine - Arena</title>
@@ -127,7 +128,7 @@
     </a>
   </footer>
 
-  <script src="local-profile.js"></script>
+  <script src="api-client.js"></script>
   <script src="offline.js"></script>
   <script src="i18n.js"></script>
   <script>
@@ -158,13 +159,20 @@
     let isTranslating = false; // Flag to keep timer stopped during translation
 
     window.onload = function() {
-      const profile = LocalProfile.getCurrent();
-      if (!profile) {
+      if (!localStorage.getItem("authToken") || !localStorage.getItem("userEmail")) {
         window.location.href = "login.html";
         return;
       }
-      if (levelNum > profile.completedLevel) {
-        window.location.href = "level.html";
+      try {
+        const response = await apiFetch("/api/user");
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.message || "Could not load your profile.");
+        if (levelNum > data.user.completedLevel) {
+          window.location.href = "level.html";
+          return;
+        }
+      } catch (error) {
+        showCustomError(error.message || "Could not load your profile. Please try again.");
         return;
       }
       const savedTheme = localStorage.getItem("appTheme") || "theme-dark-emerald";
@@ -482,9 +490,20 @@
         }
 
         try {
-          LocalProfile.updateProgress(levelNum, score * 10);
+          const response = await apiFetch("/api/update-score", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              completedLevel: levelNum,
+              score: score * 10
+            })
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            showCustomError(data.message || "Your result could not be saved. Please try again.");
+          }
         } catch (error) {
-          showCustomError(error.message || "Your result could not be saved on this device.");
+          showCustomError(error.message || "Your result could not be saved. Please check your connection.");
         }
       } else {
         document.getElementById("resultHeading").innerText = `${appTranslate("levelFailed")} ❌`;

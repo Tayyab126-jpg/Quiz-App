@@ -1,6 +1,6 @@
 (function () {
-  const player = LocalProfile.getCurrent();
-  if (!player) {
+  const token = localStorage.getItem("authToken");
+  if (!token || !localStorage.getItem("userEmail")) {
     window.location.href = "login.html";
     return;
   }
@@ -27,11 +27,7 @@
   } catch (error) {
     localStorage.removeItem(historyKey);
   }
-  profile.textContent = `${player.name} · Level ${player.completedLevel}`;
-  const greeting = chatLog.querySelector(".ai-message-assistant");
-  if (greeting && messages.length === 0) {
-    greeting.textContent = `Hi ${player.name}! I’m Arena Buddy, your Quiz Game teammate. Ask me about trivia, game strategy, or your progress at level ${player.completedLevel}.`;
-  }
+  profile.textContent = "Your in-game AI teammate";
   let isSending = false;
 
   function appendMessage(role, content) {
@@ -54,18 +50,13 @@
     promptInput.value = "";
     appendMessage("user", content);
     messages.push({ role: "user", content });
+    const requestMessages = messages.slice(-12);
 
     try {
-      if (!navigator.onLine) {
-        throw new Error("Arena Buddy needs internet. Your saved profile and games still work offline.");
-      }
-      const response = await fetch("/api/ask-ai", {
+      const response = await apiFetch("/api/ask-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: messages.slice(-12),
-          profile: { name: player.name, completedLevel: player.completedLevel }
-        })
+        body: JSON.stringify({ messages: requestMessages })
       });
       const data = await response.json();
       if (!response.ok || !data.success || typeof data.answer !== "string") {
@@ -76,6 +67,9 @@
       messages = messages.slice(-12);
       localStorage.setItem(historyKey, JSON.stringify(messages));
       appendMessage("assistant", data.answer);
+      if (data.profile && typeof data.profile.name === "string") {
+        profile.textContent = `${data.profile.name} · Level ${data.profile.completedLevel} · Rank #${data.profile.rank}`;
+      }
     } catch (error) {
       status.textContent = error.message || "Could not connect to Arena Buddy.";
     } finally {
